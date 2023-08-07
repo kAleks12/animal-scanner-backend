@@ -1,4 +1,21 @@
 services:
+  database:
+    image: postgres:latest
+    container_name: animal-scanner-database
+    hostname: scanner-database
+    restart: unless-stopped
+    ports:
+      - 5432:5432
+    volumes:
+      - ../database/db-data:/var/lib/postgresql/data
+      - ../database/config/:/docker-entrypoint-initdb.d
+    environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=admin
+        - POSTGRES_DB=animal_scanner
+    networks:
+      - animal-explorer
+
   animal-scanner-backend:
     image: animal-scanner-backend:latest
     container_name: animal-scanner-backend
