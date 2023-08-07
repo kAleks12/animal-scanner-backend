@@ -1,0 +1,22 @@
+services:
+  animal-scanner-backend:
+    image: animal-scanner-backend:latest
+    container_name: animal-scanner-backend
+    hostname: scanner-backend
+    build:
+        context: ..
+        dockerfile: docker/Dockerfile
+    ports:
+      - 8080:8080
+    expose:
+      - 8080
+    restart: unless-stopped
+    volumes:
+      - ./config/config.ini:/animal-scanner-backend.config.ini
+    networks:
+      - animal-explorer
+
+networks:
+    animal-explorer:
+        driver: bridge
+        name: animal-explorer-module
