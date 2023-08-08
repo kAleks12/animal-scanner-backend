@@ -5,6 +5,7 @@ import sys
 
 import uvicorn
 
+from src.database.database import db_provider
 from src.server.server import Server
 from src.utils.config_parser import parser
 
@@ -23,6 +24,8 @@ class Main:
         self.server.app.add_event_handler("shutdown", self.shutdown_event_handler)
 
     def shutdown_event_handler(self):
+        self.logger.info('Shutting down')
+        db_provider.close_connection()
         self.logger.info('Shutting down')
 
 

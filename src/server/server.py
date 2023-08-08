@@ -9,9 +9,11 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
 from src.shared.enum.exception_info import ExceptionInfoValue, ExceptionInfo
+from src.shared.exceptions import GenericException
 from src.utils.config_parser import parser
 
-from src.server.router.image_classification_router import router as classifier_router
+from src.server.router.user.auth_router import router as auth_router
+
 
 
 class ErrorResponseContent:
@@ -29,22 +31,24 @@ class ErrorResponse(JSONResponse):
         return super().render(vars(content))
 
 
-def _get_error_response(e: ExceptionInfoValue, msg: str) -> ErrorResponse:
+def _get_error_response(key: str, code: int, msg: str) -> ErrorResponse:
     return ErrorResponse(
-        ErrorResponseContent(e.key, msg),
-        e.code
+        ErrorResponseContent(key, msg),
+        code
     )
 
 
 async def _exception_handler_middleware(request: Request, call_next):
     try:
         return await call_next(request)
-    except Exception as e:
-        exception = ExceptionInfo.UNKNOWN_ERROR.value
-        return _get_error_response(exception, str(e))
+    except GenericException as e:
+        return _get_error_response(e.key, e.code, e.message)
     except ValidationError as e:
         exception = ExceptionInfo.VALIDATION_ERROR.value
-        return _get_error_response(exception, str(e))
+        return _get_error_response(exception.key, exception.code, str(e))
+    except Exception as e:
+        exception = ExceptionInfo.UNKNOWN_ERROR.value
+        return _get_error_response(exception.key, exception.code, str(e))
 
 
 class Server:
@@ -66,7 +70,7 @@ class Server:
         )
         self.app.middleware("http")(_exception_handler_middleware)
         self.app.add_exception_handler(RequestValidationError, self.validation_exception_handler)
-        self.routers = [classifier_router]
+        self.routers = [auth_router]
 
     def prepare(self):
         prefix = self.prefix if self.prefix else '/api/v1'

@@ -1,0 +1,1 @@
+INSERT INTO "user"."User"( username, email, password, activated) VALUES ('kaleks12', 'kacper4553@gmail.com', '93590498a58081494ba7ddb1b5072852424dbb86bc321cd04c6c66dfde0b94c60de78571f255d80333b58773aaa57f2fa6287d956218ddf4fc39aa0b16d0bb43', true)

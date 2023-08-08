@@ -32,6 +32,8 @@ services:
       - ./config/config.ini:/animal-scanner-backend.config.ini
     networks:
       - animal-explorer
+    depends_on:
+      - database
 
 networks:
     animal-explorer:

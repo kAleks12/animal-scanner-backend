@@ -16,7 +16,7 @@ class ConfigParserWrapper:
         self.parser.read(sys.argv[1])
         self.logger.info('Config file loaded')
 
-    def get_attr(self, section, option):
+    def get_attr(self, section, option) -> str:
         self.logger.debug(f'Getting attribute {option} from section {section}')
         return self.parser.get(section, option)
 
