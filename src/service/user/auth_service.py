@@ -18,7 +18,7 @@ logger = logging.getLogger("Auth-Service")
 def login(payload: UserLoginPayload) -> AuthSession:
     try:
         hashed_password = hashlib.sha512(payload.password.encode('utf-8')).hexdigest()
-        user = get_login_user(payload.username, hashed_password)
+        user = get_login_user(payload.email, hashed_password)
 
         if not user.activated:
             logger.info(f"Failed to authenticate user {user.id}. Account is not activated")

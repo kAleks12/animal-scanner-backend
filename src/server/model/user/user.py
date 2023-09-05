@@ -7,7 +7,7 @@ from src.server.model import BaseOrmModel
 
 
 class UserLoginPayload(BaseModel):
-    username: str
+    email: EmailStr
     password: str
 
 
