@@ -55,8 +55,16 @@ def check_access_token(credentials: HTTPAuthorizationCredentials = Depends(beare
     return validate_token(credentials.credentials, 'access')
 
 
-def check_refresh_token(credentials: HTTPAuthorizationCredentials = Depends(bearer)) -> dict[str, str]:
-    return validate_token(credentials.credentials, 'refresh')
+def check_refresh_token(credentials: HTTPAuthorizationCredentials = Depends(bearer)) -> (dict[str, str], str):
+    return validate_token(credentials.credentials, 'refresh'), credentials.credentials
+
+
+def check_register_token(credentials: HTTPAuthorizationCredentials = Depends(bearer)) -> dict[str, str]:
+    return validate_token(credentials.credentials, 'register')
+
+
+def check_reset_token(credentials: HTTPAuthorizationCredentials = Depends(bearer)) -> dict[str, str]:
+    return validate_token(credentials.credentials, 'reset')
 
 
 def generate_random_string() -> str:

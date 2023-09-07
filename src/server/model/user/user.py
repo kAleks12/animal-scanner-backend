@@ -30,7 +30,9 @@ class UserDTO(BaseOrmModel):
 
 
 class AuthSession(BaseModel):
+    access_token_timeout: int
     access_token: str
+    refresh_token_timeout: int
     refresh_token: str
 
 

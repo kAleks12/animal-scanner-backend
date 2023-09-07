@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends
 
 from src.server import get_error_responses
 from src.server.model.user.user import UserLoginPayload, AuthResponse, UserRegisterPayload, ChangePasswordPayload
-from src.service.user.auth_service import login, refresh_access, register_user, init_reset_password, logout, \
-    reset_password, activate_user, change_password
+from src.service.user.auth_service import login, refresh_access, register, init_reset_password, logout, \
+    reset_password, activate, change_password
 from src.shared.enum.exception_info import ExceptionInfo
-from src.utils.token_service import check_access_token, check_refresh_token
+from src.utils.token_service import check_access_token, check_refresh_token, check_register_token, check_reset_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -16,7 +16,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
                  ExceptionInfo.ENTITY_NOT_FOUND,
                  ExceptionInfo.USER_NOT_ACTIVE
              ]))
-async def post_login(payload: UserLoginPayload):
+async def login_user(payload: UserLoginPayload):
     return AuthResponse(session=login(payload))
 
 
@@ -26,8 +26,8 @@ async def post_login(payload: UserLoginPayload):
                  ExceptionInfo.ENTITY_NOT_FOUND,
                  ExceptionInfo.INVALID_TOKEN
              ]))
-async def post_refresh(token: str):
-    return AuthResponse(session=refresh_access(token))
+async def refresh_user_access(val_payload=Depends(check_refresh_token)):
+    return AuthResponse(session=refresh_access(val_payload[0], val_payload[1]))
 
 
 @router.post("/change-password",
@@ -37,12 +37,12 @@ async def post_refresh(token: str):
                  ExceptionInfo.USER_NOT_ACTIVE,
                  ExceptionInfo.INVALID_TOKEN
              ]))
-async def post_refresh(payload: ChangePasswordPayload, token=Depends(check_access_token)):
+async def change_user_password(payload: ChangePasswordPayload, token=Depends(check_access_token)):
     change_password(payload, token)
 
 
 @router.post("/logout")
-async def post_logout(token):
+async def logout_user(token):
     logout(token)
 
 
@@ -50,8 +50,8 @@ async def post_logout(token):
              responses=get_error_responses([
                  ExceptionInfo.USER_EXISTS
              ]))
-async def post_register(payload: UserRegisterPayload):
-    register_user(payload)
+async def register_user(payload: UserRegisterPayload):
+    register(payload)
 
 
 @router.post("/activate",
@@ -59,8 +59,8 @@ async def post_register(payload: UserRegisterPayload):
                  ExceptionInfo.ENTITY_NOT_FOUND,
                  ExceptionInfo.ALREADY_ACTIVE
              ]))
-async def post_activate(token: str):
-    activate_user(token)
+async def activate_user(token=Depends(check_register_token)):
+    activate(token)
 
 
 @router.post("/reset-password",
@@ -78,5 +78,5 @@ async def post_reset_password(email: str):
                  ExceptionInfo.INVALID_TOKEN,
                  ExceptionInfo.TOKEN_EXPIRED
              ]))
-async def post_set_new_password(token: str, new_password: str):
+async def set_new_user_password(new_password: str, token=Depends(check_reset_token)):
     reset_password(token, new_password)

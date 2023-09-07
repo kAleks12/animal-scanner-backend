@@ -1,5 +1,6 @@
 import logging
 import pathlib
+import ssl
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -12,7 +13,6 @@ class EmailSender:
         self.logger = logging.getLogger("Email-Sender")
         self.__reset_url = parser.get_attr("email", "reset_url")
         self.__register_url = parser.get_attr("email", "register_url")
-        self.__sender = parser.get_attr("email", "sender")
         self.__sender_name = parser.get_attr("email", "sender_name")
         self.__server = parser.get_attr("email", "smtp_server")
         self.__port = parser.get_attr("email", "smtp_port")
@@ -40,13 +40,13 @@ class EmailSender:
         try:
             message = MIMEMultipart("alternative")
             message["Subject"] = "Reset Password"
-            message["From"] = self.__sender
+            message["From"] = self.__sender_name
             message["To"] = receiver
             message.attach(MIMEText(self.__prepare_reset_password_html(receiver, reset_code, exp_delta), "html"))
 
-            with smtplib.SMTP(self.__server, self.__port) as server:
+            with smtplib.SMTP_SSL(self.__server, self.__port, context=ssl.create_default_context()) as server:
                 server.login(self.__user, self.__password)
-                server.sendmail(self.__sender, receiver, message.as_string())
+                server.sendmail(self.__user, receiver, message.as_string())
         except Exception as e:
             self.logger.exception("Failed to send reset password email")
             self.logger.exception(e)
@@ -56,13 +56,13 @@ class EmailSender:
         try:
             message = MIMEMultipart("alternative")
             message["Subject"] = "Activate your account"
-            message["From"] = self.__sender
+            message["From"] = self.__sender_name
             message["To"] = receiver
             message.attach(MIMEText(self.__prepare_register_html(receiver, activation_code), "html"))
 
-            with smtplib.SMTP(self.__server, self.__port) as server:
+            with smtplib.SMTP_SSL(self.__server, self.__port, context=ssl.create_default_context()) as server:
                 server.login(self.__user, self.__password)
-                server.sendmail(self.__sender, receiver, message.as_string())
+                server.sendmail(self.__sender_name, receiver, message.as_string())
         except Exception as e:
             self.logger.exception("Failed to send register email")
             self.logger.exception(e)

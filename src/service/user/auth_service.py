@@ -1,15 +1,15 @@
-import asyncio
 import hashlib
 import logging
 from uuid import UUID
 
-from src.database.dal.user.user import get_login_user, get_by_id, get_by_email, set_reset_password_code, add, \
+from src.database.dal.user.user import get_login_user, get_by_id, get_by_email, add, \
     set_activation_code
+from src.database.model.user.user import User
 from src.server.model.user.user import UserLoginPayload, AuthSession, ChangePasswordPayload, UserRegisterPayload
 from src.shared.exceptions import AuthException, GenericException, BadRequestException
 from src.utils.config_parser import parser
 from src.utils.email_sender.sender import sender
-from src.utils.token_service import generate_token, validate_token, TokenPayload, generate_random_string, \
+from src.utils.token_service import generate_token, validate_token, generate_random_string, \
     generate_reset_token, generate_register_token
 
 logger = logging.getLogger("Auth-Service")
@@ -24,12 +24,7 @@ def login(payload: UserLoginPayload) -> AuthSession:
             logger.info(f"Failed to authenticate user {user.id}. Account is not activated")
             raise AuthException("INACTIVE_USER", "Please verify your email address.")
 
-        access_token = generate_token(str(user.id), 'access')
-        refresh_token = generate_token(str(user.id), 'refresh')
-        user.refresh_token = refresh_token
-        user.save()
-
-        return AuthSession(access_token=access_token, refresh_token=refresh_token)
+        return _generate_auth_session(user)
     except GenericException as e:
         logger.exception(e)
         raise
@@ -38,23 +33,17 @@ def login(payload: UserLoginPayload) -> AuthSession:
         raise
 
 
-def refresh_access(refresh_token: str) -> AuthSession:
+def refresh_access(payload: dict, token: str) -> AuthSession:
     try:
-        payload = validate_token(refresh_token, 'refresh')
         user = get_by_id(UUID(payload['sub']))
         if not user.refresh_token:
             logger.info(f"Failed to refresh access token for user {user.id}. Session was terminated")
             raise AuthException("SESSION_TERMINATED", "Session was terminated by user")
-        if user.refresh_token != refresh_token:
+        if user.refresh_token != token:
             logger.info(f"Failed to refresh access token for user {user.id}. Old refresh token")
             raise BadRequestException("Old refresh token")
 
-        access_token = generate_token(str(user.id), 'access')
-        refresh_token = generate_token(str(user.id), 'refresh')
-        user.refresh_token = refresh_token
-        user.save()
-
-        return AuthSession(access_token=access_token, refresh_token=refresh_token)
+        return _generate_auth_session(user)
     except GenericException as e:
         logger.exception(e)
         raise
@@ -118,7 +107,7 @@ def init_reset_password(email: str) -> None:
         token = generate_reset_token(str(user.id), code, exp_delta)
         user.password_reset_code = code
         user.save()
-        # sender.send_reset_password(email, token, exp_delta)
+        sender.send_reset_password(email, token, exp_delta)
     except GenericException as e:
         logger.exception(e)
         raise
@@ -127,12 +116,11 @@ def init_reset_password(email: str) -> None:
         raise
 
 
-def reset_password(token: str, new_password: str) -> None:
+def reset_password(token: dict, new_password: str) -> None:
     try:
-        payload = validate_token(token, 'reset')
-        user = get_by_id(UUID(payload['sub']))
+        user = get_by_id(UUID(token['sub']))
 
-        if user.password_reset_code != payload['code']:
+        if user.password_reset_code != token['code']:
             logger.info(f"Failed to reset password for user {user.id}. Invalid reset code")
             raise BadRequestException("Invalid reset code")
 
@@ -147,7 +135,7 @@ def reset_password(token: str, new_password: str) -> None:
         raise
 
 
-def register_user(payload: UserRegisterPayload):
+def register(payload: UserRegisterPayload):
     try:
         password_hash = hashlib.sha512(payload.password.encode('utf-8')).hexdigest()
         user = add(username=payload.username, email=payload.email, password=password_hash)
@@ -164,11 +152,10 @@ def register_user(payload: UserRegisterPayload):
         raise
 
 
-def activate_user(token: str) -> None:
+def activate(token: dict) -> None:
     try:
-        payload = validate_token(token, 'register')
-        user = get_by_id(UUID(payload['sub']))
-        if user.activation_code == payload['code']:
+        user = get_by_id(UUID(token['sub']))
+        if user.activation_code == token['code']:
             user.activated = True
             user.activation_code = None
             user.save()
@@ -178,3 +165,15 @@ def activate_user(token: str) -> None:
     except Exception as e:
         logger.exception(e)
         raise
+
+
+def _generate_auth_session(user: User) -> AuthSession:
+    access_token = generate_token(str(user.id), 'access')
+    refresh_token = generate_token(str(user.id), 'refresh')
+    user.refresh_token = refresh_token
+    user.save()
+    access_token_timeout = int(parser.get_attr("auth", 'access_token_exp_min'))
+    refresh_token_timeout = int(parser.get_attr("auth", 'refresh_token_exp_min'))
+
+    return AuthSession(access_token=access_token, refresh_token=refresh_token,
+                       access_token_timeout=access_token_timeout, refresh_token_timeout=refresh_token_timeout)
