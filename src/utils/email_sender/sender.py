@@ -3,6 +3,7 @@ import pathlib
 import ssl
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from threading import Thread
 
 from src.utils.config_parser import parser
 import smtplib
@@ -44,9 +45,10 @@ class EmailSender:
             message["To"] = receiver
             message.attach(MIMEText(self.__prepare_reset_password_html(receiver, reset_code, exp_delta), "html"))
 
-            with smtplib.SMTP_SSL(self.__server, self.__port, context=ssl.create_default_context()) as server:
-                server.login(self.__user, self.__password)
-                server.sendmail(self.__user, receiver, message.as_string())
+            sender_thread = Thread(target=self._send_email_async,
+                                   args=[self.__server, self.__port, self.__user, self.__password, self.__sender_name,
+                                         receiver, message])
+            sender_thread.start()
         except Exception as e:
             self.logger.exception("Failed to send reset password email")
             self.logger.exception(e)
@@ -60,13 +62,23 @@ class EmailSender:
             message["To"] = receiver
             message.attach(MIMEText(self.__prepare_register_html(receiver, activation_code), "html"))
 
-            with smtplib.SMTP_SSL(self.__server, self.__port, context=ssl.create_default_context()) as server:
-                server.login(self.__user, self.__password)
-                server.sendmail(self.__sender_name, receiver, message.as_string())
+            sender_thread = Thread(target=self._send_email_async,
+                                   args=[self.__server, self.__port, self.__user, self.__password, self.__sender_name,
+                                         receiver, message])
+            sender_thread.start()
         except Exception as e:
             self.logger.exception("Failed to send register email")
             self.logger.exception(e)
             raise
+
+    def _send_email_async(self, server, port, user, password, sender_name, receiver, message):
+        try:
+            with smtplib.SMTP_SSL(server, port, context=ssl.create_default_context()) as server:
+                server.login(user, password)
+                server.sendmail(sender_name, receiver, message.as_string())
+        except Exception as e:
+            self.logger.exception("Failed to send register email")
+            self.logger.exception(e)
 
 
 sender = EmailSender()
