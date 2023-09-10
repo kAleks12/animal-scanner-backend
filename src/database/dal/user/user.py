@@ -49,10 +49,10 @@ def delete_user(user_id: UUID) -> None:
         raise NotFoundException("User does not exist")
 
 
-def get_login_user(email: str, password: str) -> User:
+def get_login_user(user: str, password: str) -> User:
     try:
-        return User.select(User).where(User.email == email, User.password == password)[0]
-    except IndexError:
+        return User.select(User).where(User.username == user, User.password == password).get()
+    except DoesNotExist:
         raise NotFoundException("User does not exist")
 
 
@@ -65,8 +65,8 @@ def get_by_id(user_id: UUID) -> User:
 
 def get_by_email(email: str) -> User:
     try:
-        return User.select(User).where(User.email == email)[0]
-    except IndexError:
+        return User.select(User).where(User.email == email).get()
+    except DoesNotExist:
         raise NotFoundException("User does not exist")
 
 

@@ -10,7 +10,7 @@ class GenericException(Exception):
 
 class AuthException(GenericException):
     def __init__(self, key: str, message: str):
-        super().__init__(key, message, status.HTTP_401_UNAUTHORIZED)
+        super().__init__(key, message, status.HTTP_403_FORBIDDEN)
 
 
 class NotFoundException(GenericException):

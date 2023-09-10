@@ -1,33 +1,41 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
+from starlette.responses import JSONResponse
 
 from src.server import get_error_responses
-from src.server.model.user.user import UserLoginPayload, AuthResponse, UserRegisterPayload, ChangePasswordPayload
+from src.server.model.user.user import UserLoginPayload, UserRegisterPayload, ChangePasswordPayload, AuthSession
 from src.service.user.auth_service import login, refresh_access, register, init_reset_password, logout, \
     reset_password, activate, change_password
 from src.shared.enum.exception_info import ExceptionInfo
-from src.utils.token_service import check_access_token, check_refresh_token, check_register_token, check_reset_token
+from src.utils.token_service import check_access_token, check_refresh_token, check_register_token, check_reset_token, \
+    validate_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/login", response_model=AuthResponse,
+@router.post("/login", response_model=AuthSession,
              responses=get_error_responses([
                  ExceptionInfo.INVALID_CREDENTIALS,
                  ExceptionInfo.ENTITY_NOT_FOUND,
                  ExceptionInfo.USER_NOT_ACTIVE
              ]))
 async def login_user(payload: UserLoginPayload):
-    return AuthResponse(session=login(payload))
+    content, refresh_token, expires_at = login(payload)
+    response = JSONResponse(content=content.to_dict())
+    response.set_cookie(key="jwt", value=refresh_token, httponly=True, secure=True,
+                        max_age=expires_at)
+    return response
 
 
-@router.post("/refresh", response_model=AuthResponse,
+@router.get("/refresh", response_model=AuthSession,
              responses=get_error_responses([
                  ExceptionInfo.TOKEN_EXPIRED,
                  ExceptionInfo.ENTITY_NOT_FOUND,
                  ExceptionInfo.INVALID_TOKEN
              ]))
-async def refresh_user_access(val_payload=Depends(check_refresh_token)):
-    return AuthResponse(session=refresh_access(val_payload[0], val_payload[1]))
+async def refresh_user_access(request: Request):
+    token = request.cookies.get("jwt")
+    payload = validate_token(token, 'refresh')
+    return refresh_access(payload, token)
 
 
 @router.post("/change-password",
@@ -80,3 +88,13 @@ async def post_reset_password(email: str):
              ]))
 async def set_new_user_password(new_password: str, token=Depends(check_reset_token)):
     reset_password(token, new_password)
+
+
+@router.get("/test", response_model=AuthSession,
+            dependencies=[Depends(check_access_token)],  responses=get_error_responses([
+                 ExceptionInfo.ENTITY_NOT_FOUND,
+                 ExceptionInfo.INVALID_TOKEN,
+                 ExceptionInfo.TOKEN_EXPIRED
+             ]))
+async def test():
+    return AuthSession(access_token="test")

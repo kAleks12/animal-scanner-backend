@@ -9,11 +9,10 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
 from src.shared.enum.exception_info import ExceptionInfoValue, ExceptionInfo
-from src.shared.exceptions import GenericException
+from src.shared.exceptions import GenericException, AuthException
 from src.utils.config_parser import parser
 
 from src.server.router.user.auth_router import router as auth_router
-
 
 
 class ErrorResponseContent:
@@ -34,7 +33,8 @@ class ErrorResponse(JSONResponse):
 def _get_error_response(key: str, code: int, msg: str) -> ErrorResponse:
     return ErrorResponse(
         ErrorResponseContent(key, msg),
-        code
+        code,
+
     )
 
 
@@ -56,21 +56,18 @@ class Server:
         self.logger = logging.getLogger('Server')
         docs = "/docs" if int(parser.get_attr('server', 'docs')) else None
         redoc = "/redoc" if int(parser.get_attr('server', 'redoc')) else None
-        allowed_origins = parser.get_attr('server', 'allow_origins').split(',')
-        allowed_methods = parser.get_attr('server', 'allow_methods').split(',')
-        allowed_headers = parser.get_attr('server', 'allow_headers').split(',')
         self.prefix = parser.get_attr('server', 'prefix')
         self.app = FastAPI(docs_url=docs, redoc_url=redoc)
-        self.app.add_middleware(
-            CORSMiddleware,
-            allow_origins=allowed_origins,
-            allow_credentials=True,
-            allow_methods=allowed_methods,
-            allow_headers=allowed_headers,
-        )
         self.app.middleware("http")(_exception_handler_middleware)
         self.app.add_exception_handler(RequestValidationError, self.validation_exception_handler)
         self.routers = [auth_router]
+
+    def wrap_cors(self):
+        allowed_origins = parser.get_attr('server', 'allow_origins').split(',')
+        allowed_methods = parser.get_attr('server', 'allow_methods').split(',')
+        allowed_headers = parser.get_attr('server', 'allow_headers').split(',')
+        self.app = CORSMiddleware(app=self.app, allow_headers=allowed_headers, allow_origins=allowed_origins,
+                                  allow_methods=allowed_methods, allow_credentials=True)
 
     def prepare(self):
         prefix = self.prefix if self.prefix else '/api/v1'

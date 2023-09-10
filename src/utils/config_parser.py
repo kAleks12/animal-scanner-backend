@@ -3,6 +3,8 @@ import os.path
 import sys
 from configparser import ConfigParser
 
+from src.shared.exceptions import GenericException
+
 
 class ConfigParserWrapper:
     def __init__(self):
@@ -17,8 +19,11 @@ class ConfigParserWrapper:
         self.logger.info('Config file loaded')
 
     def get_attr(self, section, option) -> str:
-        self.logger.debug(f'Getting attribute {option} from section {section}')
-        return self.parser.get(section, option)
+        try:
+            self.logger.debug(f'Getting attribute {option} from section {section}')
+            return self.parser.get(section, option)
+        except Exception:
+            raise GenericException("CONFIG_ERROR", f'Failed to fetch attr {option} from section {section}', 500)
 
 
 parser = ConfigParserWrapper()

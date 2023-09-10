@@ -22,6 +22,7 @@ class Main:
         self.server = Server()
         self.server.prepare()
         self.server.app.add_event_handler("shutdown", self.shutdown_event_handler)
+        self.server.wrap_cors()
 
     def shutdown_event_handler(self):
         self.logger.info('Shutting down')

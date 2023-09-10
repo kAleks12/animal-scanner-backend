@@ -3,7 +3,6 @@ import string
 from datetime import timedelta, datetime
 from random import choice
 from typing import Literal
-from uuid import UUID
 from fastapi import Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
@@ -11,6 +10,7 @@ from pydantic import BaseModel
 
 from src.shared.exceptions import AuthException
 from src.utils.config_parser import parser
+from src.utils.utils import error_wrapper
 
 bearer = HTTPBearer(scheme_name='Bearer')
 logger = logging.getLogger("Token-Service")
@@ -73,6 +73,7 @@ def generate_random_string() -> str:
     return ''.join(choice(characters) for _ in range(length))
 
 
+@error_wrapper(logger=logger)
 def generate_token(user_id: str, token_type: Literal['access', 'refresh']) -> str:
     exp_delta = int(parser.get_attr("auth", f'{token_type}_token_exp_min'))
     exp = datetime.utcnow() + timedelta(minutes=exp_delta)
@@ -82,6 +83,7 @@ def generate_token(user_id: str, token_type: Literal['access', 'refresh']) -> st
     return jwt.encode(payload.to_dict(), token_secret, algorithm='HS512')
 
 
+@error_wrapper(logger=logger)
 def generate_reset_token(user_id: str, code: str, exp_delta: int) -> str:
     exp = datetime.utcnow() + timedelta(minutes=exp_delta)
     payload = ResetTokenPayload(sub=user_id, code=code, exp=exp)
@@ -90,6 +92,7 @@ def generate_reset_token(user_id: str, code: str, exp_delta: int) -> str:
     return jwt.encode(payload.to_dict(), token_secret, algorithm='HS512')
 
 
+@error_wrapper(logger=logger)
 def generate_register_token(user_id: str, code: str) -> str:
     payload = RegisterTokenPayload(sub=user_id, code=code)
     token_secret = parser.get_attr("auth", "register_token_secret")
@@ -97,12 +100,19 @@ def generate_register_token(user_id: str, code: str) -> str:
     return jwt.encode(payload.to_dict(), token_secret, algorithm='HS512')
 
 
+@error_wrapper(logger=logger)
 def validate_token(token: str, token_type: Literal['access', 'refresh', 'register', 'reset']) -> dict[str, str]:
     token_secret = parser.get_attr("auth", f'{token_type}_token_secret')
-    payload = jwt.decode(token, token_secret, algorithms='HS512')
-    exp = datetime.utcfromtimestamp(payload["exp"])
-    if exp < datetime.utcnow():
-        logger.info(f"Failed to authenticate user {payload['sub']}. Token expired")
+    try:
+        payload = jwt.decode(token, token_secret, algorithms='HS512')
+    except Exception as e:
+        logger.exception(e)
         raise AuthException("INVALID TOKEN", "Token has expired")
+
+    if token_type is not 'register':
+        exp = datetime.utcfromtimestamp(payload["exp"])
+        if exp < datetime.utcnow():
+            logger.info(f"Failed to authenticate user {payload['sub']}. Token expired")
+            raise AuthException("INVALID TOKEN", "Token has expired")
 
     return payload

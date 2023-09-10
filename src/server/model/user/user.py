@@ -7,7 +7,7 @@ from src.server.model import BaseOrmModel
 
 
 class UserLoginPayload(BaseModel):
-    email: EmailStr
+    user: str
     password: str
 
 
@@ -30,11 +30,9 @@ class UserDTO(BaseOrmModel):
 
 
 class AuthSession(BaseModel):
-    access_token_timeout: int
     access_token: str
-    refresh_token_timeout: int
-    refresh_token: str
 
-
-class AuthResponse(BaseModel):
-    session: AuthSession
+    def to_dict(self):
+        return {
+            "access_token": self.access_token
+        }
