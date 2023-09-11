@@ -7,7 +7,7 @@ def error_wrapper(logger: logging.Logger, def_error_msg: str = None):
     def outer_wrapper(func):
         def inner_wrapper(*args):
             try:
-                return func(args)
+                return func(*args)
             except GenericException as e:
                 logger.exception(e)
                 raise
@@ -15,7 +15,7 @@ def error_wrapper(logger: logging.Logger, def_error_msg: str = None):
                 logger.exception(e)
 
                 if def_error_msg is None:
-                    raise Exception(f'Unhandled error occurred in funcition {func}')
+                    raise Exception(f'Unhandled error occurred in function {func}')
                 else:
                     raise Exception(def_error_msg)
 

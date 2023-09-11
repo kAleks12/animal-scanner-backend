@@ -34,7 +34,6 @@ def _get_error_response(key: str, code: int, msg: str) -> ErrorResponse:
     return ErrorResponse(
         ErrorResponseContent(key, msg),
         code,
-
     )
 
 
@@ -76,4 +75,4 @@ class Server:
 
     async def validation_exception_handler(self, _: Request, e: RequestValidationError):
         self.logger.error(str(e.errors()))
-        return _get_error_response(ExceptionInfo.VALIDATION_ERROR.value, str(e).replace('\n', ''))
+        return _get_error_response(ExceptionInfo.VALIDATION_ERROR.value.key, ExceptionInfo.VALIDATION_ERROR.value.code,  str(e).replace('\n', ''))

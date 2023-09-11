@@ -4,12 +4,14 @@ from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 import pytz
+from starlette import status
 
 from src.database.dal.user.user import get_login_user, get_by_id, get_by_email, add, \
     set_activation_code
 from src.database.model.user.user import User
 from src.server.model.user.user import UserLoginPayload, AuthSession, ChangePasswordPayload, UserRegisterPayload
-from src.shared.exceptions import AuthException, GenericException, BadRequestException, NotFoundException
+from src.shared.exceptions import AuthException, GenericException, BadRequestException, NotFoundException, \
+    InvalidDataException
 from src.utils.config_parser import parser
 from src.utils.email_sender.sender import sender
 from src.utils.token_service import generate_token, validate_token, generate_random_string, \
@@ -104,14 +106,23 @@ def reset_password(payload: dict, new_password: str) -> None:
         raise BadRequestException("Invalid reset code provided")
 
     new_password_hash = hashlib.sha512(new_password.encode('utf-8')).hexdigest()
+    if user.password == new_password_hash:
+        logger.info(f"Failed to reset password for user {user.id}. Passwords are the same")
+        raise BadRequestException("Passwords are the same", code=status.HTTP_409_CONFLICT)
+
     user.password = new_password_hash
+    user.password_reset_code = None
     user.save()
 
 
 @error_wrapper(logger=logger)
 def register(payload: UserRegisterPayload):
     password_hash = hashlib.sha512(payload.password.encode('utf-8')).hexdigest()
-    user = add(username=payload.username, email=payload.email, password=password_hash)
+    try:
+        user = add(username=payload.username, email=payload.email, password=password_hash)
+    except InvalidDataException as e:
+        logger.exception(e)
+        raise BadRequestException("Username is already taken")
     code = hashlib.sha512(generate_random_string().encode('utf-8')).hexdigest()
     token = generate_register_token(str(user.id), code)
 

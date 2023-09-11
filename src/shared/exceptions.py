@@ -24,5 +24,5 @@ class InvalidDataException(GenericException):
 
 
 class BadRequestException(GenericException):
-    def __init__(self, message: str, key: str = "BAD_REQUEST"):
-        super().__init__(key, message, status.HTTP_400_BAD_REQUEST)
+    def __init__(self, message: str, key: str = "BAD_REQUEST", code: int = status.HTTP_400_BAD_REQUEST):
+        super().__init__(key, message, code)
