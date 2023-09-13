@@ -27,5 +27,8 @@ class ExceptionInfo(Enum):
     INVALID_TOKEN = ExceptionInfoValue('INVALID_TOKEN', status.HTTP_401_UNAUTHORIZED)
     TOKEN_EXPIRED = ExceptionInfoValue('TOKEN_EXPIRED', status.HTTP_401_UNAUTHORIZED)
     ALREADY_ACTIVE = ExceptionInfoValue('ALREADY_ACTIVE', status.HTTP_409_CONFLICT)
+    INVALID_DATA = ExceptionInfoValue('INVALID_DATA', status.HTTP_400_BAD_REQUEST)
+    INTEGRITY_ERROR = ExceptionInfoValue('INTEGRITY_ERROR', status.HTTP_400_BAD_REQUEST)
+    DOES_NOT_EXIST = ExceptionInfoValue('DOES_NOT_EXIST', status.HTTP_400_BAD_REQUEST)
 
 

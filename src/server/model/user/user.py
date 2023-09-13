@@ -23,10 +23,9 @@ class ChangePasswordPayload(BaseModel):
 
 
 class UserDTO(BaseOrmModel):
-    id: UUID
+    id: str
     username: str
     email: str
-    activated: bool
 
 
 class AuthSession(BaseModel):

@@ -23,6 +23,11 @@ class InvalidDataException(GenericException):
         super().__init__("INVALID_DATA", message, status.HTTP_400_BAD_REQUEST)
 
 
+class IntegrityException(GenericException):
+    def __init__(self, message: str):
+        super().__init__("INTEGRITY_ERROR", message, status.HTTP_400_BAD_REQUEST)
+
+
 class BadRequestException(GenericException):
     def __init__(self, message: str, key: str = "BAD_REQUEST", code: int = status.HTTP_400_BAD_REQUEST):
         super().__init__(key, message, code)

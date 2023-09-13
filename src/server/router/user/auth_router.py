@@ -88,13 +88,3 @@ async def post_reset_password(email: str):
              ]))
 async def set_new_user_password(new_password: str, token=Depends(check_reset_token)):
     reset_password(token, new_password)
-
-
-@router.get("/test", response_model=AuthSession,
-            dependencies=[Depends(check_access_token)],  responses=get_error_responses([
-                 ExceptionInfo.ENTITY_NOT_FOUND,
-                 ExceptionInfo.INVALID_TOKEN,
-                 ExceptionInfo.TOKEN_EXPIRED
-             ]))
-async def test():
-    return AuthSession(access_token="test")
