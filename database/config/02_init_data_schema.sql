@@ -9,7 +9,18 @@ CREATE TABLE IF NOT EXISTS "data"."Submission" (
     author_id uuid,
     filename varchar,
     description varchar(250) NOT NULL,
+    date timestamp NOT NULL,
     FOREIGN KEY(author_id)
     REFERENCES "user"."User"(id)
     ON DELETE SET NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS "data"."Tag" (
+    id bigint GENERATED ALWAYS AS  IDENTITY,
+    value varchar NOT NULL,
+    submission_id uuid NOT NULL,
+    FOREIGN KEY(submission_id)
+    REFERENCES "data"."Submission"(id)
+    ON DELETE CASCADE
 );

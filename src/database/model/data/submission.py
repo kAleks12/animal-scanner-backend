@@ -1,4 +1,4 @@
-from peewee import UUIDField, DecimalField, ForeignKeyField, CharField
+from peewee import UUIDField, DecimalField, ForeignKeyField, CharField, DateTimeField
 
 from src.database.model.data import DataBase
 from src.database.model.user.user import User
@@ -11,3 +11,5 @@ class Submission(DataBase):
     author = ForeignKeyField(User, null=True)
     filename = CharField()
     description = CharField(250)
+    date = DateTimeField()
+    tags: list[any]

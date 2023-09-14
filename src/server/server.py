@@ -14,6 +14,7 @@ from src.utils.config_parser import parser
 
 from src.server.router.user.auth_router import router as auth_router
 from src.server.router.data.submission import router as sub_router
+from src.server.router.data.search import router as search_router
 
 
 class ErrorResponseContent:
@@ -60,7 +61,7 @@ class Server:
         self.app = FastAPI(docs_url=docs, redoc_url=redoc)
         self.app.middleware("http")(_exception_handler_middleware)
         self.app.add_exception_handler(RequestValidationError, self.validation_exception_handler)
-        self.routers = [auth_router, sub_router]
+        self.routers = [auth_router, sub_router, search_router]
 
     def wrap_cors(self):
         allowed_origins = parser.get_attr('server', 'allow_origins').split(',')

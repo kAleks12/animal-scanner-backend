@@ -1,19 +1,22 @@
 import uuid
+from datetime import date
 
-from peewee import IntegrityError, DataError, DoesNotExist
+from peewee import IntegrityError, DataError, DoesNotExist, prefetch
 
 from src.database.model.data.submission import Submission
+from src.database.model.data.tag import Tag
 from src.database.model.user.user import User
 from src.shared.exceptions import IntegrityException, InvalidDataException, BadRequestException
 
 
-def add(user_id: uuid, x: float, y: float, description: str) -> Submission:
+def add(user_id: uuid, x: float, y: float, description: str, relevant_date: date) -> Submission:
     try:
         return Submission.create(
             x=x,
             y=y,
             user=user_id,
-            description=description
+            description=description,
+            date=relevant_date
         )
     except IntegrityError as e:
         raise IntegrityException(str(e))
@@ -21,12 +24,13 @@ def add(user_id: uuid, x: float, y: float, description: str) -> Submission:
         raise InvalidDataException(str(e))
 
 
-def update(record_id: uuid, x: float, y: float, description: str) -> Submission:
+def update(record_id: uuid, x: float, y: float, description: str, relevant_date: date) -> Submission:
     try:
         data = {
             Submission.x: x,
             Submission.y: y,
-            Submission.description: description
+            Submission.description: description,
+            Submission.date: relevant_date
         }
         return Submission.update(data).where(Submission.id == record_id).execute() == 1
     except IntegrityError as e:
@@ -46,11 +50,11 @@ def delete(record_id: uuid):
 
 def get_one(record_id: uuid):
     try:
-        return (
+        return prefetch(
             Submission.select(Submission, User)
             .left_outer_join(User, Submission.author)
             .where(Submission.id == record_id)
-            .get()
+            .prefetch(Tag)[0]
         )
     except DoesNotExist as e:
         raise BadRequestException(str(e), "DOES_NOT_EXIST")
@@ -60,4 +64,5 @@ def get_all():
     return (
         Submission.select(Submission, User)
         .left_outer_join(User, Submission.author)
+        .prefetch(Tag)
     )
