@@ -2,7 +2,7 @@ from functools import lru_cache
 
 import requests
 
-from src.server.model.data.search import PlaceDTO
+from src.server.model.data.search import PlaceDTO, PositionDTO
 
 
 @lru_cache(maxsize=10000)
@@ -15,7 +15,7 @@ def get_search_results(query: str) -> list[PlaceDTO]:
         name = place["display_name"]
         x = place["lat"]
         y = place["lon"]
-        entry = PlaceDTO(x=x, y=y, name=name)
+        position = PositionDTO(x=x, y=y)
+        entry = PlaceDTO(value=position, label=name)
         output.append(entry)
-
     return output

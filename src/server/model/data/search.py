@@ -1,7 +1,12 @@
 from pydantic import BaseModel
 
 
-class PlaceDTO(BaseModel):
+class PositionDTO(BaseModel):
     x: float
     y: float
-    name: str
+
+
+class PlaceDTO(BaseModel):
+    value: PositionDTO
+    label: str
+

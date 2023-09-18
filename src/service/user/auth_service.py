@@ -45,7 +45,7 @@ def refresh_access(payload: dict, token: str) -> AuthSession:
         raise AuthException("SESSION_TERMINATED", "User is logged out")
     if user.refresh_token != token:
         logger.info(f"Failed to refresh access token for user {user.id}. Old refresh token")
-        raise AuthException("Old refresh token provided")
+        raise AuthException("OLD_TOKEN", "Old refresh token provided")
 
     access_token = generate_token(str(user.id), 'access')
     return AuthSession(access_token=access_token)
