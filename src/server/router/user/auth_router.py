@@ -50,8 +50,12 @@ async def change_user_password(payload: ChangePasswordPayload, token=Depends(che
 
 
 @router.post("/logout")
-async def logout_user(token):
+async def logout_user(request: Request):
+    token = request.cookies.get("jwt")
     logout(token)
+    response = JSONResponse(content=None)
+    response.delete_cookie(key="jwt")
+    return response
 
 
 @router.post("/register",
