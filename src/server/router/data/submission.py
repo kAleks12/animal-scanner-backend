@@ -101,5 +101,5 @@ async def get_submissions():
                  ExceptionInfo.INVALID_TOKEN,
              ]),
              dependencies=[Depends(check_access_token)])
-async def classify_image(image_file: UploadFile, sub_id: uuid.UUID = Query()):
-    add_submission_photo(image_file, sub_id)
+async def classify_image(file: UploadFile, sub_id: uuid.UUID = Query()):
+    add_submission_photo(file, sub_id)

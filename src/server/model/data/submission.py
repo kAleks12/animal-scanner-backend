@@ -13,8 +13,8 @@ class SubmissionPayload(BaseModel):
     x: float
     y: float
     relevant_date: date
-    description: str
-    tags: list[str]
+    description: Optional[str]
+    tags: Optional[list[str]]
 
 
 class SubmissionLightDTO(BaseOrmModel):
