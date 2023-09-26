@@ -14,7 +14,7 @@ def add(user_id: uuid, x: float, y: float, description: str, relevant_date: date
         return Submission.create(
             x=x,
             y=y,
-            user=user_id,
+            author=user_id,
             description=description,
             date=relevant_date
         )
@@ -62,7 +62,5 @@ def get_one(record_id: uuid):
 
 def get_all():
     return (
-        Submission.select(Submission, User)
-        .left_outer_join(User, Submission.author)
-        .prefetch(Tag)
+        Submission.select(Submission.id, Submission.x, Submission.y)
     )

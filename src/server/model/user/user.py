@@ -23,7 +23,7 @@ class ChangePasswordPayload(BaseModel):
 
 
 class UserDTO(BaseOrmModel):
-    id: str
+    id: UUID
     username: str
     email: str
 

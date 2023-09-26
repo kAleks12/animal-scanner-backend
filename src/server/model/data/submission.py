@@ -32,7 +32,7 @@ class SubmissionDTO(BaseOrmModel):
     tags: list[TagDTO]
     date: date
     description: Optional[str] = None
-    user: Optional[UserDTO] = None
+    author: Optional[UserDTO] = None
 
 
 class SubmissionShortDTO(BaseOrmModel):
