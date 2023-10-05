@@ -55,8 +55,9 @@ def check_access_token(credentials: HTTPAuthorizationCredentials = Depends(beare
     return validate_token(credentials.credentials, 'access')
 
 
-def check_refresh_token(credentials: HTTPAuthorizationCredentials = Depends(bearer)) -> (dict[str, str], str):
-    return validate_token(credentials.credentials, 'refresh'), credentials.credentials
+def check_refresh_token(credentials: HTTPAuthorizationCredentials = Depends(bearer)) -> str:
+    validate_token(credentials.credentials, 'refresh')
+    return credentials.credentials
 
 
 def check_register_token(credentials: HTTPAuthorizationCredentials = Depends(bearer)) -> dict[str, str]:
@@ -109,7 +110,7 @@ def validate_token(token: str, token_type: Literal['access', 'refresh', 'registe
         logger.exception(e)
         raise AuthException("INVALID TOKEN", "Token has expired")
 
-    if token_type is not 'register':
+    if token_type != 'register':
         exp = datetime.utcfromtimestamp(payload["exp"])
         if exp < datetime.utcnow():
             logger.info(f"Failed to authenticate user {payload['sub']}. Token expired")

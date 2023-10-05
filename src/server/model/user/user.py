@@ -30,8 +30,4 @@ class UserDTO(BaseOrmModel):
 
 class AuthSession(BaseModel):
     access_token: str
-
-    def to_dict(self):
-        return {
-            "access_token": self.access_token
-        }
+    refresh_token: Optional[str] = None

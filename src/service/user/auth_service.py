@@ -38,7 +38,8 @@ def login(payload: UserLoginPayload) -> (AuthSession, str, datetime):
 
 
 @error_wrapper(logger=logger)
-def refresh_access(payload: dict, token: str) -> AuthSession:
+def refresh_access(token: str) -> AuthSession:
+    payload = validate_token(token, "refresh")
     user = get_by_id(UUID(payload['sub']))
     if not user.refresh_token:
         logger.info(f"Failed to refresh access token for user {user.id}. Session was terminated")
@@ -144,6 +145,5 @@ def _generate_auth_session(user: User) -> (AuthSession, str, int):
     refresh_token = generate_token(str(user.id), 'refresh')
     user.refresh_token = refresh_token
     user.save()
-    refresh_token_timeout = int(parser.get_attr("auth", 'refresh_token_exp_min')) * 60
 
-    return AuthSession(access_token=access_token), refresh_token, refresh_token_timeout
+    return AuthSession(access_token=access_token, refresh_token=refresh_token)

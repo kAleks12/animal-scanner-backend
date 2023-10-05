@@ -1,13 +1,11 @@
-from fastapi import APIRouter, Depends, Request
-from starlette.responses import JSONResponse
+from fastapi import APIRouter, Depends
 
 from src.server import get_error_responses
 from src.server.model.user.user import UserLoginPayload, UserRegisterPayload, ChangePasswordPayload, AuthSession
 from src.service.user.auth_service import login, refresh_access, register, init_reset_password, logout, \
     reset_password, activate, change_password
 from src.shared.enum.exception_info import ExceptionInfo
-from src.utils.token_service import check_access_token, check_refresh_token, check_register_token, check_reset_token, \
-    validate_token
+from src.utils.token_service import check_access_token, check_refresh_token, check_register_token, check_reset_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -19,11 +17,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
                  ExceptionInfo.USER_NOT_ACTIVE
              ]))
 async def login_user(payload: UserLoginPayload):
-    content, refresh_token, expires_at = login(payload)
-    response = JSONResponse(content=content.to_dict())
-    response.set_cookie(key="jwt", value=refresh_token, httponly=True, secure=True,
-                        max_age=expires_at)
-    return response
+    return login(payload)
 
 
 @router.get("/refresh", response_model=AuthSession,
@@ -32,10 +26,8 @@ async def login_user(payload: UserLoginPayload):
                  ExceptionInfo.ENTITY_NOT_FOUND,
                  ExceptionInfo.INVALID_TOKEN
              ]))
-async def refresh_user_access(request: Request):
-    token = request.cookies.get("jwt")
-    payload = validate_token(token, 'refresh')
-    return refresh_access(payload, token)
+async def refresh_user_access(token=Depends(check_refresh_token)):
+    return refresh_access(token)
 
 
 @router.post("/change-password",
@@ -50,12 +42,8 @@ async def change_user_password(payload: ChangePasswordPayload, token=Depends(che
 
 
 @router.post("/logout")
-async def logout_user(request: Request):
-    token = request.cookies.get("jwt")
-    logout(token)
-    response = JSONResponse(content=None)
-    response.delete_cookie(key="jwt")
-    return response
+async def logout_user(token=Depends(check_refresh_token)):
+    return logout(token)
 
 
 @router.post("/register",
