@@ -4,14 +4,40 @@
   * [Screenshots](#screenshots)
 - [Installation](#installation)
 - [Configuration](#configuration)
-- [Disclaimer](#disclaimer)
 
 
 # General info
 
 ## Description
 
-TODO
+Animal scanner backend is a RESTful API powering Animal Scanner frontend. It integrates Nominatim API for geosearch and uses PostgreSQL database server.
+
+## Screenshots
+
+-  Auth router
+![obraz](https://github.com/kAleks12/animal-scanner-backend/assets/79469983/697fe7e0-771a-40ef-bbe6-ad1b602ec2f3)
+
+-  Submission router
+![obraz](https://github.com/kAleks12/animal-scanner-backend/assets/79469983/3a1306ca-e57a-4fdf-9167-dc22d8fdf3f4)
+
+-  Search router
+![obraz](https://github.com/kAleks12/animal-scanner-backend/assets/79469983/68c015c4-10c5-4bcd-93dc-a4c5b8ee7667)
+
+
+
+# Installation
+1. Install docker on your system
+2. Clone this repo and open its directory in file explorer
+3. Open terminal in said directory
+4. Enter these commands
+```
+cd docker
+docker compose up -d
+```
+5. Swagger UI should be accessible by default under
+```
+http://localhost:8080/docs
+```
 
 # Configuration
 Config file is named `config.ini` and it contains all the changeable settings for the API. Defined parameters are:
@@ -24,11 +50,21 @@ Config file is named `config.ini` and it contains all the changeable settings fo
   - **allow_headers** - list of allowed origins, default is * (all)
   - **docs** - enable/disable swagger docs available under `host\port\docs`, default is 1 (on)
   - **redoc** - enable/disable redoc docs available `host\port\redoc`, default is 1 (on)
-* **yolo** section
-  - **model_weights** - name of the yolov8 to be used, default is yolov8x-cls.pt, make sure to use classifier model (ends with -cls)
-  - **img_data_path** - path to the folder with images to be classified, default is ./img_data/
-  - **image_threshold** - defines the number of images allowed to exist simultaneously in the yolo predict folder, default is 1000
-
-# Disclaimer
-This software does nothing with uploaded data by itself. However, watch out for the fact that ultralytics may use your images for analytics and marketing purposes since their provided package makes post requests to google servers after each model run. 
-
+* **database** section
+  - **host**
+  - **port**
+  - **user**
+  - **password**
+  - **db_name**
+  - **connect_attempts** - number of connection attempts
+* **auth** section
+  - **<key>_token_secret** - base key for generating <key> token
+  - **<key>_token_exp_min** - length of <key> token time to live
+* **email** section
+  - **smtp_server** - smtp server provider
+  - **smtp_port**
+  - **user**
+  - **password**
+  - **sender_name**
+* **config** section
+  - **upload_dir** - directory for uploaded photos
