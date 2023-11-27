@@ -1,0 +1,41 @@
+services:
+  database:
+    image: postgres:latest
+    container_name: animal-scanner-database
+    hostname: scanner-database
+    restart: unless-stopped
+    ports:
+      - 5432:5432
+    volumes:
+      - ../database/db-data:/var/lib/postgresql/data
+      - ../database/config/:/docker-entrypoint-initdb.d
+    environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=admin
+        - POSTGRES_DB=animal_scanner
+    networks:
+      - animal-explorer
+
+  animal-scanner-backend:
+    image: animal-scanner-backend:latest
+    container_name: animal-scanner-backend
+    hostname: scanner-backend
+    build:
+        context: ..
+        dockerfile: docker/Dockerfile
+    ports:
+      - 8080:8080
+    expose:
+      - 8080
+    restart: unless-stopped
+    volumes:
+      - ./config/config.ini:/animal-scanner-backend.config.ini
+    networks:
+      - animal-explorer
+    depends_on:
+      - database
+
+networks:
+    animal-explorer:
+        driver: bridge
+        name: animal-explorer-module

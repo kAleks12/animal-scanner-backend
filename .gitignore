@@ -1,0 +1,5 @@
+/image_classification_service.log
+/runs/
+/img_data/
+/yolov8x-cls.pt
+/database/db-data/
