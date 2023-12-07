@@ -6,7 +6,8 @@ from fastapi import UploadFile
 
 from src.database.dal.data.submission import add, update, delete, get_one, get_all
 from src.database.dal.data.tag import delete_for_submission,add as add_tag
-from src.server.model.data.submission import SubmissionPayload, SubmissionDTO, SubmissionShortDTO, SubmissionLightDTO
+from src.server.model.data.submission import SubmissionPayload, SubmissionDTO, SubmissionShortDTO, SubmissionLightDTO, \
+    SubmissionEditPayload
 from src.utils.config_parser import parser
 from src.utils.utils import error_wrapper
 
@@ -27,11 +28,11 @@ def add_record(payload: SubmissionPayload, token_payload: dict) -> SubmissionLig
 
 
 @error_wrapper(logger=logger)
-def edit_record(record_id: uuid, payload: SubmissionPayload) -> None:
+def edit_record(record_id: uuid, payload: SubmissionEditPayload) -> None:
     delete_for_submission(record_id)
     for tag in payload.tags:
         add_tag(tag, record_id)
-    update(record_id, payload.x, payload.y, payload.description, payload.relevant_date)
+    update(record_id, payload.description, payload.relevant_date)
 
 
 @error_wrapper(logger=logger)

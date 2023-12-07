@@ -9,7 +9,6 @@ class Submission(DataBase):
     x = DecimalField()
     y = DecimalField()
     author = ForeignKeyField(User, null=True)
-    filename = CharField()
     description = CharField(250)
     date = DateTimeField()
     tags: list[any]
