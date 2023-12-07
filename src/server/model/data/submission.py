@@ -17,6 +17,12 @@ class SubmissionPayload(BaseModel):
     tags: Optional[list[str]]
 
 
+class SubmissionEditPayload(BaseModel):
+    relevant_date: date
+    description: Optional[str]
+    tags: Optional[list[str]]
+
+
 class SubmissionLightDTO(BaseOrmModel):
     id: uuid.UUID
     date: date

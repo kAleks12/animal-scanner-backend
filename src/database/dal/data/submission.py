@@ -24,11 +24,9 @@ def add(user_id: uuid, x: float, y: float, description: str, relevant_date: date
         raise InvalidDataException(str(e))
 
 
-def update(record_id: uuid, x: float, y: float, description: str, relevant_date: date) -> Submission:
+def update(record_id: uuid, description: str, relevant_date: date) -> Submission:
     try:
         data = {
-            Submission.x: x,
-            Submission.y: y,
             Submission.description: description,
             Submission.date: relevant_date
         }

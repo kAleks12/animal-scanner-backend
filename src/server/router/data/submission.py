@@ -4,7 +4,8 @@ from fastapi import APIRouter, Depends, UploadFile, Query
 from starlette.responses import FileResponse
 
 from src.server import get_error_responses
-from src.server.model.data.submission import SubmissionPayload, SubmissionDTO, SubmissionShortDTO, SubmissionLightDTO
+from src.server.model.data.submission import SubmissionPayload, SubmissionDTO, SubmissionShortDTO, SubmissionLightDTO, \
+    SubmissionEditPayload
 from src.service.data.submission import add_record, edit_record, delete_record, get_single_record, get_record_list, \
     add_submission_photo, upload_data_path
 from src.shared.enum.exception_info import ExceptionInfo
@@ -33,7 +34,7 @@ async def add_submission(payload: SubmissionPayload, token_payload=Depends(check
                 ExceptionInfo.DOES_NOT_EXIST
             ]),
             dependencies=[Depends(check_access_token)])
-async def update_submission(record_id: uuid.UUID, payload: SubmissionPayload):
+async def update_submission(record_id: uuid.UUID, payload: SubmissionEditPayload):
     edit_record(record_id, payload)
 
 

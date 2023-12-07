@@ -7,8 +7,7 @@ CREATE TABLE IF NOT EXISTS "data"."Submission" (
     x numeric NOT NULL,
     y numeric NOT NULL,
     author_id uuid,
-    filename varchar,
-    description varchar(250) NOT NULL,
+    description varchar(250),
     date timestamp NOT NULL,
     FOREIGN KEY(author_id)
     REFERENCES "user"."User"(id)
