@@ -80,7 +80,7 @@ async def get_submission_photo(record_id: uuid.UUID):
     }
     path = upload_data_path + str(record_id)
     media_type = 'image/jpeg'
-    return FileResponse(path, headers=headers,media_type=media_type)
+    return FileResponse(path, headers=headers, media_type=media_type)
 
 
 @router.get("/", response_model=list[SubmissionShortDTO],

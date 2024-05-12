@@ -54,7 +54,7 @@ def get_one(record_id: uuid):
             .where(Submission.id == record_id)
             .prefetch(Tag)[0]
         )
-    except DoesNotExist as e:
+    except IndexError as e:
         raise BadRequestException(str(e), "DOES_NOT_EXIST")
 
 

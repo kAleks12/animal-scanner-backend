@@ -1,8 +1,5 @@
 services:
   database:
-    image: postgres:latest
-    container_name: animal-scanner-database
-    hostname: scanner-database
     restart: unless-stopped
     ports:
       - 5432:5432
@@ -16,17 +13,13 @@ services:
     networks:
       - animal-explorer
 
-  animal-scanner-backend:
+  backend:
     image: animal-scanner-backend:latest
-    container_name: animal-scanner-backend
-    hostname: scanner-backend
     build:
         context: ..
         dockerfile: docker/Dockerfile
     ports:
       - 8080:8080
-    expose:
-      - 8080
     restart: unless-stopped
     volumes:
       - ./config/config.ini:/animal-scanner-backend.config.ini
